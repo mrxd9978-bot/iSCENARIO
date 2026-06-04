@@ -12,6 +12,7 @@ export default defineConfig(() => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
+        injectRegister: 'auto',
         includeAssets: ['logo.svg', 'apple-touch-icon.png'],
         manifest: {
           name: 'iSCENARIO',
@@ -20,6 +21,7 @@ export default defineConfig(() => {
           theme_color: '#0a0b0e',
           background_color: '#0a0b0e',
           display: 'standalone',
+          start_url: '/',
           icons: [
             {
               src: 'pwa-192x192.png',

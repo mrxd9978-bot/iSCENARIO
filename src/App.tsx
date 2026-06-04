@@ -34,45 +34,48 @@ export default function App() {
     setScenarios((prev) => [newScenario, ...prev]);
 
     try {
-      const prompt = `أنت كاتب مسرحي وسينمائي محترف متخصص في كتابة المشاهد التدريبية للممثلين.
+      const prompt = `You are a professional playwright and screenwriter specializing in acting training scenes.
 
-اكتب مشهداً تدريبياً احترافياً بالمواصفات التالية:
-- النوع الدرامي: ${req.genreLabel}
-- طول المشهد: ${req.lengthLabel} (حوالي ${req.lengthWords} كلمة)
-- مستوى الصعوبة التمثيلية: ${req.levelLabel}
-- عدد الشخصيات: ${req.chars}
-${req.setting ? `- البيئة والإطار الزمني: ${req.setting}` : ""}
-${req.instructions ? `- تعليمات خاصة: ${req.instructions}` : ""}
+Create a professional training scene with these specs:
+- Genre: ${req.genreLabel}
+- Length: ${req.lengthLabel} (around ${req.lengthWords} words)
+- Acting Difficulty Level: ${req.levelLabel}
+- Number of Characters: ${req.chars}
+${req.setting ? `- Setting & Era: ${req.setting}` : ""}
+${req.instructions ? `- Special Instructions: ${req.instructions}` : ""}
 
-اكتب المشهد بالتنسيق التالي:
+CRITICAL LANGUAGE REQUIREMENT:
+Analyze the language and dialect of the input.
+- If the input (such as instructions/setting) is in English, generate the ENTIRE OUTPUT in English.
+- If the input is in Arabic, analyze the dialect (e.g., Iraqi, Khaleeji, Egyptian, Levantine, Fusha). Generate the characters' dialogue EXACTLY in that same Arabic dialect. The structural headings and stage directions should remain in formal Arabic (Fusha) if the input is Arabic.
 
-# عنوان المشهد
+Ensure you use this structure (translated to the target language appropriately):
 
-**الفكرة المحورية:** جملة واحدة تلخص جوهر المشهد
+# [Scene Title]
 
----
-## الشخصيات
-
-**[اسم الشخصية 1]** — [وصف الشخصية وحالتها النفسية]
-
----
-## الموقع والمناخ
-
-[وصف الموقع والجو العام]
+**الفكرة المحورية:** [Core Concept]
 
 ---
-## المشهد
+## الشخصيات (Characters)
 
-[اسم الشخصية]: (إرشاد أداء) الحوار
+**[Character Name]** — [Description and state]
 
 ---
-## ملاحظات المخرج
+## الموقع والمناخ (Setting)
 
-- ملاحظة 1
-- ملاحظة 2
-- ملاحظة 3
+[Description]
 
-اكتب بالعربية الفصحى البسيطة.`;
+---
+## المشهد (The Scene)
+
+[Character Name]: (Stage direction) Dialogue
+
+---
+## ملاحظات المخرج (Director's Notes)
+
+- Note 1
+- Note 2
+- Note 3`;
 
       const res = await fetch("/api/generate", {
         method: "POST",

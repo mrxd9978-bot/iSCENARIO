@@ -2,14 +2,29 @@ import React from "react";
 import type { ScenarioRequest } from "../types";
 
 function renderMarkdown(text: string) {
+  // Remove <think>...</think> completely (support streaming by matching to end of string if unclosed)
+  text = text.replace(/<think>[\s\S]*?(?:<\/think>|$)/gi, "").trim();
+
+  // Clean up any remaining <think> or </think> tags just in case
+  text = text.replace(/<\/?think.*?>/gi, "");
+
+  // Collapse newlines after colons or closing parentheses in dialogue lines
+  // so that the character name, stage direction, and the actual dialogue sit on the same line
+  // This helps our line-by-line regex parsing.
+  text = text.replace(/^(?:\*\*|\[)([^\]*:\n]+):?(?:\*\*|\]):?\s*\((.+?)\)\s*\n\s*"?(.+?)"?$/gm, "**$1:** ($2) $3");
+  text = text.replace(/^(?:\*\*|\[)([^\]*:\n]+):?(?:\*\*|\]):?\s*\n\s*"?(.+?)"?$/gm, "**$1:** $2");
+
   return text
-    .replace(/^# (.+)$/gm, '<h2 class="scenario-title">$1</h2>')
-    .replace(/^## (.+)$/gm, '<div class="scene-section-title">$1</div>')
+    .replace(/^#+ (.+)$/gm, '<h2 class="scenario-title">$1</h2>')
+    .replace(/^##+ (.+)$/gm, '<div class="scene-section-title">$1</div>')
     .replace(/^---$/gm, '<div style="height:1px;background:var(--color-border);margin:16px 0;"></div>')
-    .replace(/\*\*(.+?):\*\* (.+)/g, '<p style="margin-bottom:8px"><strong style="color:var(--color-accent)">$1:</strong> <span style="color:var(--color-text-muted)">$2</span></p>')
-    .replace(/\*\*\[(.+?)\]\*\* — (.+)/g, '<div class="char-card"><div class="char-name">$1</div><div class="char-desc">$2</div></div>')
-    .replace(/^\[(.+?)\]: \((.+?)\) (.+)$/gm, '<div class="dialogue-block"><div class="dialogue-speaker">$1</div><div class="direction">$2</div><div class="dialogue-line">$3</div></div>')
-    .replace(/^\[(.+?)\]: (.+)$/gm, '<div class="dialogue-block"><div class="dialogue-speaker">$1</div><div class="dialogue-line">$2</div></div>')
+    .replace(/\*\*(الفكرة.*?|المحور.*?|القصة.*?):?\*\*:?\s*(.+)/g, '<p style="margin-bottom:8px"><strong style="color:var(--color-accent)">$1:</strong> <span style="color:var(--color-text-muted)">$2</span></p>')
+    .replace(/\*\*\[?([^\]\n]+?)\]?\*\*\s*[-—]\s*(.+)/g, '<div class="char-card"><div class="char-name">$1</div><div class="char-desc">$2</div></div>')
+    .replace(/^(?:\*\*|\[)([^\]*:\n]+):?(?:\*\*|\]):?\s*\((.+?)\)\s*(.+)$/gm, '<div class="dialogue-block"><div class="dialogue-speaker">$1</div><div class="direction">$2</div><div class="dialogue-line">$3</div></div>')
+    .replace(/^(?:\*\*|\[)([^\]*:\n]+):?(?:\*\*|\]):?\s*(.+)$/gm, (match, speaker, line) => {
+      if (speaker.includes("الفكرة") || speaker.includes("ملاحظات") || speaker.includes("الشخصيات") || speaker.includes("المشهد")) return match;
+      return `<div class="dialogue-block"><div class="dialogue-speaker">${speaker}</div><div class="dialogue-line">${line}</div></div>`;
+    })
     .replace(/^- (.+)$/gm, '<div class="note-item">$1</div>')
     .replace(/\n{2,}/g, '<br/>')
     .replace(/\n/g, '<br/>');

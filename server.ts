@@ -1,15 +1,11 @@
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenAI } from "@google/genai";
+import OpenAI from "openai";
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  httpOptions: {
-    headers: {
-      "User-Agent": "aistudio-build",
-    },
-  },
+const groq = new OpenAI({
+  apiKey: process.env.GROQ_API_KEY,
+  baseURL: "https://api.groq.com/openai/v1",
 });
 
 async function startServer() {
@@ -28,14 +24,15 @@ async function startServer() {
       // Flush headers immediately
       res.flushHeaders();
 
-      const responseStream = await ai.models.generateContentStream({
-        model: "gemini-3.1-pro-preview",
-        contents: prompt,
+      const responseStream = await groq.chat.completions.create({
+        model: "qwen/qwen3-32b",
+        messages: [{ role: "user", content: prompt }],
+        stream: true,
       });
 
       for await (const chunk of responseStream) {
-        if (chunk.text) {
-          const data = JSON.stringify({ delta: { text: chunk.text } });
+        if (chunk.choices[0]?.delta?.content) {
+          const data = JSON.stringify({ delta: { text: chunk.choices[0].delta.content } });
           res.write(`data: ${data}\n\n`);
         }
       }
@@ -43,7 +40,7 @@ async function startServer() {
       res.write("data: [DONE]\n\n");
       res.end();
     } catch (error: any) {
-      console.error("Gemini API Error:", error);
+      console.error("Groq API Error:", error);
       res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
       res.end();
     }
