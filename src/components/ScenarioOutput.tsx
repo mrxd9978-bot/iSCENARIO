@@ -83,6 +83,98 @@ function ScenarioCard({
     ? `<div style="color:var(--color-red);padding:8px 0">${content}</div>`
     : renderMarkdown(content) + (!isDone ? '<span class="cursor inline-block w-0.5 h-[1.1em] bg-accent mr-0.5 align-middle rounded-[1px] animate-[cursorBlink_0.6s_step-end_infinite] shadow-[0_0_6px_rgba(201,168,76,0.6)]"></span>' : "");
 
+  const handlePdfExport = () => {
+    const printWindow = window.open('', '', 'width=800,height=900');
+    if (!printWindow) return;
+    
+    // Strip the blinking cursor and apply standard script formatting
+    const cleanContent = renderedContent.replace(/<span class="cursor.*?<\/span>/g, '');
+    
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Export Scenario</title>
+          <style>
+            @page { margin: 1in; }
+            body { 
+              font-family: "Courier New", Courier, monospace; 
+              color: black;
+              background: white;
+              line-height: 1.2;
+              font-size: 12pt;
+              max-width: 6.5in;
+              margin: 0 auto;
+            }
+            .scenario-title {
+              text-align: center;
+              text-transform: uppercase;
+              font-size: 16pt;
+              font-weight: bold;
+              text-decoration: underline;
+              margin-bottom: 2em;
+            }
+            .scene-section-title {
+              margin-top: 1.5em;
+              text-transform: uppercase;
+              font-weight: bold;
+              margin-bottom: 0.5em;
+            }
+            .char-card {
+              margin-bottom: 1em;
+            }
+            .char-name {
+              font-weight: bold;
+              text-transform: uppercase;
+              display: inline;
+            }
+            .char-desc {
+              display: inline;
+              margin-left: 0.5em;
+            }
+            .dialogue-block {
+              margin-top: 1em;
+              margin-bottom: 1em;
+            }
+            .dialogue-speaker {
+              text-align: center;
+              width: 100%;
+              text-transform: uppercase;
+              margin-bottom: 0;
+            }
+            .direction {
+              text-align: center;
+              font-style: italic;
+              width: 50%;
+              margin: 0 auto;
+            }
+            .dialogue-line {
+              margin-left: 1in;
+              margin-right: 1in;
+            }
+            .note-item {
+              margin-bottom: 0.5em;
+            }
+            .note-item::before {
+              content: '- ';
+            }
+            strong {
+              font-weight: bold;
+            }
+          </style>
+        </head>
+        <body dir="auto">
+          ${cleanContent}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 300);
+  };
+
   return (
     <div className="bg-surface border border-border rounded-[28px] overflow-hidden animate-[cardEntrance_0.6s_cubic-bezier(0.16,1,0.3,1)_forwards] origin-top hover:shadow-[0_0_0_1px_rgba(201,168,76,0.12),0_24px_60px_rgba(0,0,0,0.5)] hover:border-accent/15 transition-all duration-300 w-full mb-6 relative">
       <div className="h-0.5 bg-border relative overflow-hidden">
@@ -110,6 +202,13 @@ function ScenarioCard({
           </span>
         </div>
         <div className="flex gap-1.5 shrink-0">
+          <button
+            onClick={handlePdfExport}
+            className="w-8 h-8 rounded-lg border border-border bg-surface text-text-muted cursor-pointer grid place-items-center text-sm transition-all duration-200 hover:border-accent-dim hover:text-accent hover:bg-accent-glow hover:scale-110 active:scale-95"
+            title="تصدير PDF"
+          >
+            ⎙
+          </button>
           <button
             onClick={handleCopy}
             className="w-8 h-8 rounded-lg border border-border bg-surface text-text-muted cursor-pointer grid place-items-center text-sm transition-all duration-200 hover:border-accent-dim hover:text-accent hover:bg-accent-glow hover:scale-110 active:scale-95"

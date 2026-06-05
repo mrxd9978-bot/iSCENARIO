@@ -1,22 +1,1331 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>iSCENARIO — مولّد السيناريوهات الذكي</title>
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="theme-color" content="#0a0b0e" />
-    <meta name="description" content="AI scenario generator for actors, directors, and acting coaches." />
-    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
-    <link rel="alternate icon" href="/pwa-192x192.png" />
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>iSCENARIO — مولّد السيناريوهات الذكي</title>
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<meta name="theme-color" content="#0a0b0e" />
+<meta name="description" content="AI scenario generator for actors, directors, and acting coaches." />
+<link rel="icon" type="image/svg+xml" href="/logo.svg" />
+<link rel="alternate icon" href="/pwa-192x192.png" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #0a0b0e;
+  --surface: #13151b;
+  --surface2: #1a1c24;
+  --surface3: #20232d;
+  --border: #252836;
+  --accent: #c9a84c;
+  --accent-dim: #a8893a;
+  --accent-glow: rgba(201,168,76,0.18);
+  --accent-glow2: rgba(201,168,76,0.06);
+  --text: #ede9e0;
+  --text-muted: #72758a;
+  --text-dim: #3e4150;
+  --red: #e05c5c;
+  --green: #5ce0a0;
+  --blue: #5c9ee0;
+  --radius: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+}
 
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ══ Ambient BG particles ══ */
+#particles-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+}
+
+/* ══ Spotlight that follows mouse ══ */
+#spotlight {
+  position: fixed;
+  width: 700px; height: 700px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201,168,76,0.055) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 1;
+  transform: translate(-50%,-50%);
+  transition: left .12s ease, top .12s ease;
+}
+
+/* ══ Nav ══ */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 40px;
+  background: rgba(10,11,14,0.8);
+  backdrop-filter: blur(24px) saturate(1.6);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transform: translateY(-100%);
+  animation: navDrop .7s .1s cubic-bezier(.16,1,.3,1) forwards;
+}
+
+@keyframes navDrop {
+  to { transform: translateY(0); }
+}
+
+.logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: var(--text);
+  display: flex; align-items: center; gap: 8px;
+}
+.logo-icon {
+  width: 32px; height: 32px;
+  background: var(--accent);
+  border-radius: 8px;
+  display: grid; place-items: center;
+  font-size: 0.9rem;
+  color: #0a0b0e;
+  animation: logoPulse 3s ease-in-out infinite;
+}
+@keyframes logoPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(201,168,76,0.4); }
+  50%      { box-shadow: 0 0 0 8px rgba(201,168,76,0); }
+}
+.logo span { color: var(--accent); }
+
+.nav-right { display: flex; align-items: center; gap: 12px; }
+
+.nav-badge {
+  font-size: 0.72rem;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 5px 14px;
+  border-radius: 100px;
+}
+
+.nav-pill {
+  background: var(--accent-glow);
+  border: 1px solid rgba(201,168,76,0.4);
+  color: var(--accent);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 0.8rem;
+  padding: 6px 16px;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all .25s cubic-bezier(.34,1.56,.64,1);
+  letter-spacing: .5px;
+  position: relative;
+  overflow: hidden;
+}
+.nav-pill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .3s ease;
+  border-radius: inherit;
+  z-index: -1;
+}
+.nav-pill:hover { color: #0a0b0e; border-color: var(--accent); transform: scale(1.05); }
+.nav-pill:hover::before { transform: scaleX(1); }
+
+/* ══ Hero ══ */
+.hero {
+  position: relative;
+  text-align: center;
+  padding: 130px 24px 70px;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(80px);
+}
+.hero-orb-1 {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(201,168,76,0.12), transparent 70%);
+  top: -100px; left: 50%; transform: translateX(-50%);
+  animation: orbFloat1 8s ease-in-out infinite;
+}
+.hero-orb-2 {
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(92,158,224,0.06), transparent 70%);
+  top: 50px; right: 10%;
+  animation: orbFloat2 10s ease-in-out infinite;
+}
+@keyframes orbFloat1 {
+  0%,100% { transform: translateX(-50%) scale(1); opacity: 0.8; }
+  50%      { transform: translateX(-50%) scale(1.15); opacity: 1; }
+}
+@keyframes orbFloat2 {
+  0%,100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-30px) scale(1.1); }
+}
+
+.hero-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 0.72rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid rgba(201,168,76,0.3);
+  padding: 6px 18px;
+  border-radius: 100px;
+  margin-bottom: 30px;
+  background: rgba(201,168,76,0.05);
+  opacity: 0;
+  animation: heroFadeUp .8s .3s cubic-bezier(.16,1,.3,1) forwards;
+}
+.hero-label-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: dotBlink 2s ease-in-out infinite;
+}
+@keyframes dotBlink {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: .4; transform: scale(.7); }
+}
+
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.6rem, 6vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1.12;
+  max-width: 800px;
+  margin: 0 auto 22px;
+  opacity: 0;
+  animation: heroFadeUp .8s .45s cubic-bezier(.16,1,.3,1) forwards;
+}
+.hero h1 em {
+  font-style: italic;
+  color: var(--accent);
+  position: relative;
+}
+.hero h1 em::after {
+  content: '';
+  position: absolute;
+  bottom: -4px; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: underlineSlide 2s ease-in-out infinite;
+}
+@keyframes underlineSlide {
+  0%   { transform: scaleX(0); opacity: 0; }
+  30%  { transform: scaleX(1); opacity: 1; }
+  70%  { transform: scaleX(1); opacity: 1; }
+  100% { transform: scaleX(0); opacity: 0; }
+}
+
+.hero-sub {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  max-width: 500px;
+  margin: 0 auto 50px;
+  font-weight: 300;
+  opacity: 0;
+  animation: heroFadeUp .8s .6s cubic-bezier(.16,1,.3,1) forwards;
+}
+
+.hero-stats {
+  display: inline-flex;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  opacity: 0;
+  animation: heroFadeUp .8s .75s cubic-bezier(.16,1,.3,1) forwards;
+}
+.hero-stat {
+  padding: 14px 28px;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  text-align: center;
+  transition: background .2s;
+}
+.hero-stat:last-child { border-left: none; }
+.hero-stat:hover { background: var(--surface2); }
+.hero-stat-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 4px;
+  display: block;
+}
+.hero-stat-lbl {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+
+@keyframes heroFadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ══ App shell ══ */
+.app-shell {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 24px;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 28px 100px;
+  align-items: start;
+  position: relative;
+  z-index: 2;
+  opacity: 0;
+  animation: heroFadeUp .8s .9s cubic-bezier(.16,1,.3,1) forwards;
+}
+
+/* ══ Panel ══ */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 28px;
+  position: sticky;
+  top: 82px;
+  transition: box-shadow .3s;
+}
+.panel:hover {
+  box-shadow: 0 0 0 1px rgba(201,168,76,0.1), 0 20px 60px rgba(0,0,0,0.4);
+}
+
+.panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 26px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.panel-title {
+  font-size: 0.7rem;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+}
+.panel-title-icon {
+  width: 22px; height: 22px;
+  background: var(--accent-glow);
+  border: 1px solid rgba(201,168,76,0.3);
+  border-radius: 6px;
+  display: grid; place-items: center;
+  font-size: 0.7rem;
+}
+.panel-count {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 2px 10px;
+}
+
+.field { margin-bottom: 20px; }
+
+label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 9px;
+  font-weight: 500;
+  letter-spacing: .2px;
+}
+.label-icon { font-size: 0.75rem; opacity: .7; }
+
+select, textarea, input[type="text"] {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 0.88rem;
+  padding: 11px 14px;
+  outline: none;
+  transition: border-color .25s, box-shadow .25s, background .25s;
+  appearance: none;
+}
+select:hover, textarea:hover, input[type="text"]:hover {
+  background: var(--surface3);
+  border-color: rgba(255,255,255,0.1);
+}
+select:focus, textarea:focus, input[type="text"]:focus {
+  border-color: var(--accent-dim);
+  box-shadow: 0 0 0 3px var(--accent-glow2), 0 0 16px rgba(201,168,76,0.08);
+  background: var(--surface3);
+}
+
+textarea { resize: vertical; min-height: 88px; line-height: 1.6; }
+
+.select-wrap { position: relative; }
+.select-wrap::after {
+  content: '▾';
+  position: absolute;
+  left: 14px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+  font-size: 0.78rem;
+}
+
+/* Chips */
+.chips { display: flex; flex-wrap: wrap; gap: 7px; }
+
+.chip {
+  padding: 6px 14px;
+  border-radius: 100px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  cursor: pointer;
+  transition: all .2s cubic-bezier(.34,1.56,.64,1);
+  font-family: 'Tajawal', sans-serif;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+.chip::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent-glow);
+  opacity: 0;
+  transition: opacity .2s;
+}
+.chip:hover { border-color: var(--accent-dim); color: var(--accent); transform: translateY(-1px); }
+.chip:hover::before { opacity: 1; }
+.chip:active { transform: scale(.95); }
+.chip.active {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(201,168,76,0.2);
+}
+.chip.active::before { opacity: 0; }
+
+/* Slider */
+.slider-wrap { position: relative; }
+.slider-row { display: flex; align-items: center; gap: 14px; }
+
+input[type="range"] {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  transition: background .2s;
+}
+input[type="range"]:hover { background: var(--surface3); }
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2.5px solid var(--bg);
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.2), 0 2px 8px rgba(0,0,0,0.4);
+  cursor: pointer;
+  transition: transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .2s;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.25);
+  box-shadow: 0 0 0 5px rgba(201,168,76,0.25), 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.slider-marks {
+  display: flex; justify-content: space-between;
+  margin-top: 6px;
+}
+.slider-mark {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color .2s;
+}
+.slider-mark:hover { color: var(--accent); }
+
+.slider-val {
+  min-width: 32px; height: 32px;
+  display: grid; place-items: center;
+  border-radius: 8px;
+  background: var(--accent-glow);
+  border: 1px solid rgba(201,168,76,0.3);
+  font-size: 0.9rem;
+  color: var(--accent);
+  font-weight: 700;
+  font-family: 'Playfair Display', serif;
+  transition: transform .2s cubic-bezier(.34,1.56,.64,1);
+}
+.slider-val.pop { animation: valPop .3s cubic-bezier(.34,1.56,.64,1); }
+@keyframes valPop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+/* Generate button */
+.btn-generate {
+  width: 100%;
+  margin-top: 6px;
+  padding: 15px;
+  background: linear-gradient(135deg, var(--accent) 0%, #d4b05a 50%, var(--accent) 100%);
+  background-size: 200% 200%;
+  color: #0a0b0e;
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: .5px;
+  transition: all .3s cubic-bezier(.34,1.56,.64,1);
+  position: relative;
+  overflow: hidden;
+  animation: gradientShift 4s ease infinite;
+}
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.btn-generate::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+  opacity: 0;
+  transition: opacity .3s;
+}
+.btn-generate:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(201,168,76,0.4), 0 4px 12px rgba(0,0,0,0.3);
+}
+.btn-generate:hover::after { opacity: 1; }
+.btn-generate:active { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(201,168,76,0.3); }
+.btn-generate:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.btn-inner {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-generate.loading .btn-text { display: none; }
+.btn-generate.loading .spinner { display: block; }
+.btn-generate .spinner {
+  display: none;
+  width: 20px; height: 20px;
+  border: 2.5px solid rgba(0,0,0,.3);
+  border-top-color: #0a0b0e;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.btn-icon-star {
+  font-size: 0.8rem;
+  animation: starSpin 3s linear infinite;
+}
+@keyframes starSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ══ Output ══ */
+.output-area { display: flex; flex-direction: column; gap: 20px; }
+
+.output-empty {
+  background: var(--surface);
+  border: 1px dashed rgba(255,255,255,0.07);
+  border-radius: var(--radius-xl);
+  padding: 80px 40px;
+  text-align: center;
+  animation: heroFadeUp .5s ease forwards;
+}
+.empty-icon {
+  font-size: 3.5rem;
+  margin-bottom: 20px;
+  display: block;
+  animation: emptyFloat 4s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(201,168,76,0.3));
+}
+@keyframes emptyFloat {
+  0%,100% { transform: translateY(0) rotate(-3deg); }
+  50%      { transform: translateY(-12px) rotate(3deg); }
+}
+.empty-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.empty-sub { font-size: 0.85rem; color: var(--text-dim); }
+
+/* ══ Scenario card ══ */
+.scenario-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  animation: cardEntrance .6s cubic-bezier(.16,1,.3,1) forwards;
+  transform-origin: top center;
+  transition: box-shadow .3s, border-color .3s;
+}
+.scenario-card:hover {
+  box-shadow: 0 0 0 1px rgba(201,168,76,0.12), 0 24px 60px rgba(0,0,0,0.5);
+  border-color: rgba(201,168,76,0.15);
+}
+@keyframes cardEntrance {
+  from { opacity: 0; transform: translateY(20px) scale(.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Progress bar on new card */
+.card-progress {
+  height: 2px;
+  background: var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.card-progress-bar {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+  border-radius: 1px;
+  width: 0%;
+  transition: width .3s ease;
+  animation: progressPulse 2s ease-in-out infinite;
+}
+.card-progress-bar.done { width: 100%; animation: none; }
+@keyframes progressPulse {
+  0%,100% { box-shadow: 0 0 6px rgba(201,168,76,0.3); }
+  50%      { box-shadow: 0 0 14px rgba(201,168,76,0.7); }
+}
+
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  background: var(--surface2);
+}
+.card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.badge {
+  font-size: 0.68rem;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-weight: 700;
+  transition: transform .2s;
+}
+.badge:hover { transform: scale(1.05); }
+.badge-genre { background: rgba(201,168,76,0.12); color: var(--accent); border: 1px solid rgba(201,168,76,0.25); }
+.badge-len   { background: rgba(92,224,160,0.08); color: var(--green); border: 1px solid rgba(92,224,160,0.2); }
+.badge-level { background: rgba(224,92,92,0.08); color: var(--red); border: 1px solid rgba(224,92,92,0.2); }
+
+.card-actions { display: flex; gap: 7px; }
+
+.btn-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: grid; place-items: center;
+  font-size: 0.8rem;
+  transition: all .2s cubic-bezier(.34,1.56,.64,1);
+}
+.btn-icon:hover {
+  border-color: var(--accent-dim);
+  color: var(--accent);
+  background: var(--accent-glow);
+  transform: scale(1.12);
+}
+.btn-icon:active { transform: scale(.95); }
+
+.card-body { padding: 24px 26px; }
+
+.scenario-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  line-height: 1.3;
+  opacity: 0;
+  animation: heroFadeUp .4s .1s ease forwards;
+}
+.scenario-logline {
+  font-size: 0.87rem;
+  color: var(--text-muted);
+  margin-bottom: 22px;
+  font-style: italic;
+  opacity: 0;
+  animation: heroFadeUp .4s .2s ease forwards;
+}
+
+.scene-section { margin-bottom: 24px; }
+.scene-section-title {
+  font-size: 0.68rem;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 10px;
+}
+.scene-section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+.char-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  transition: border-color .2s, transform .2s;
+}
+.char-card:hover { border-color: rgba(201,168,76,0.2); transform: translateX(-3px); }
+.char-name { font-weight: 600; font-size: 0.88rem; margin-bottom: 3px; color: var(--accent); }
+.char-desc { font-size: 0.78rem; color: var(--text-muted); }
+
+.dialogue-block {
+  margin-bottom: 14px;
+  animation: dialogueIn .3s ease forwards;
+}
+@keyframes dialogueIn {
+  from { opacity: 0; transform: translateX(8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.dialogue-speaker {
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+.dialogue-line {
+  font-size: 0.9rem;
+  padding: 11px 16px;
+  background: var(--surface2);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  border-right: 3px solid rgba(201,168,76,0.3);
+  line-height: 1.75;
+  transition: border-color .2s;
+}
+.dialogue-line:hover { border-right-color: var(--accent); }
+
+.direction {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 6px 12px;
+  background: rgba(201,168,76,0.04);
+  border-radius: 6px;
+  margin: 6px 0;
+  border-right: 2px solid rgba(201,168,76,0.15);
+}
+
+.acting-notes {
+  background: rgba(92,224,160,0.04);
+  border: 1px solid rgba(92,224,160,0.12);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+.note-item {
+  display: flex; gap: 10px; align-items: flex-start;
+  margin-bottom: 8px;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  transition: color .2s;
+}
+.note-item:hover { color: var(--text); }
+.note-item:last-child { margin-bottom: 0; }
+.note-item::before {
+  content: '✦';
+  color: var(--green);
+  font-size: 0.6rem;
+  margin-top: 6px;
+  flex-shrink: 0;
+  animation: noteStar 2s ease-in-out infinite;
+}
+@keyframes noteStar {
+  0%,100% { opacity: 1; }
+  50%      { opacity: .4; }
+}
+
+/* Typing cursor */
+.cursor {
+  display: inline-block;
+  width: 2px; height: 1.1em;
+  background: var(--accent);
+  margin-right: 2px;
+  vertical-align: middle;
+  border-radius: 1px;
+  animation: cursorBlink .6s step-end infinite;
+  box-shadow: 0 0 6px rgba(201,168,76,0.6);
+}
+@keyframes cursorBlink { 50% { opacity: 0; } }
+
+/* Toast */
+#toast {
+  position: fixed;
+  bottom: 28px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 22px;
+  font-size: 0.85rem;
+  color: var(--text);
+  z-index: 999;
+  transition: transform .4s cubic-bezier(.16,1,.3,1), opacity .4s;
+  opacity: 0;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+#toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+#toast-icon { color: var(--green); font-size: 1rem; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+/* Selection */
+::selection { background: rgba(201,168,76,0.25); color: var(--text); }
+
+/* Responsive */
+@media (max-width: 920px) {
+  .app-shell { grid-template-columns: 1fr; }
+  .panel { position: static; }
+  nav { padding: 14px 20px; }
+  .hero { padding: 90px 20px 50px; }
+  .hero-stats { display: none; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="particles-canvas"></canvas>
+<div id="spotlight"></div>
+
+<nav>
+  <div class="logo">
+    <div class="logo-icon">🎭</div>
+    i<span>SCENARIO</span>
+  </div>
+  <div class="nav-right">
+    <span class="nav-badge">AI · v2.0</span>
+    <button class="nav-pill">✦ ابدأ الآن</button>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-orb hero-orb-1"></div>
+  <div class="hero-orb hero-orb-2"></div>
+
+  <div class="hero-label">
+    <span class="hero-label-dot"></span>
+    أداة تدريب الممثلين بالذكاء الاصطناعي
+  </div>
+
+  <h1>اصنع <em>سيناريوهات</em><br>تدريبية لا تُنسى</h1>
+
+  <p class="hero-sub">مشاهد درامية احترافية تُولَّد لحظياً — للممثلين، المخرجين، ومدربي الأداء.</p>
+
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <span class="hero-stat-num" id="stat-count">0</span>
+      <span class="hero-stat-lbl">سيناريو مولَّد</span>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-num">8</span>
+      <span class="hero-stat-lbl">نوع دراما</span>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-num">∞</span>
+      <span class="hero-stat-lbl">إمكانيات</span>
+    </div>
+  </div>
+</section>
+
+<div class="app-shell">
+
+  <!-- ── Controls ── -->
+  <aside class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="panel-title-icon">⚙</div>
+        إعدادات المشهد
+      </div>
+      <span class="panel-count" id="genCount">0 سيناريو</span>
+    </div>
+
+    <div class="field">
+      <label><span class="label-icon">🎬</span> النوع الدرامي</label>
+      <div class="select-wrap">
+        <select id="genre">
+          <option value="drama">🎭 دراما عاطفية</option>
+          <option value="comedy">😄 كوميديا</option>
+          <option value="thriller">⚡ إثارة وتشويق</option>
+          <option value="tragedy">💔 مأساة</option>
+          <option value="romance">🌹 رومانسي</option>
+          <option value="crime">🔍 جريمة وبوليسي</option>
+          <option value="social">🏘 اجتماعي</option>
+          <option value="horror">🌑 رعب نفسي</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label><span class="label-icon">⏱</span> طول المشهد</label>
+      <div class="chips" id="lengthChips">
+        <div class="chip active" data-val="short">قصير</div>
+        <div class="chip" data-val="medium">متوسط</div>
+        <div class="chip" data-val="long">طويل</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label><span class="label-icon">📊</span> مستوى الصعوبة</label>
+      <div class="chips" id="levelChips">
+        <div class="chip active" data-val="beginner">مبتدئ</div>
+        <div class="chip" data-val="intermediate">متوسط</div>
+        <div class="chip" data-val="advanced">متقدم</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label><span class="label-icon">👥</span> عدد الشخصيات</label>
+      <div class="slider-wrap">
+        <div class="slider-row">
+          <input type="range" id="charCount" min="1" max="5" value="2" />
+          <div class="slider-val" id="charVal">2</div>
+        </div>
+        <div class="slider-marks">
+          <span class="slider-mark">١</span>
+          <span class="slider-mark">٢</span>
+          <span class="slider-mark">٣</span>
+          <span class="slider-mark">٤</span>
+          <span class="slider-mark">٥</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label><span class="label-icon">🌍</span> الإطار / البيئة</label>
+      <input type="text" id="setting" placeholder="مثال: مكتب، سبعينيات، قرية صغيرة..." />
+    </div>
+
+    <div class="field">
+      <label><span class="label-icon">✏️</span> تعليمات خاصة</label>
+      <textarea id="instructions" placeholder="مثال: مواجهة بين أب وابنه حول قرار مهم..."></textarea>
+    </div>
+
+    <button class="btn-generate" id="generateBtn" onclick="generateScenario()">
+      <div class="btn-inner">
+        <span class="btn-text"><span class="btn-icon-star">✦</span> توليد السيناريو</span>
+        <div class="spinner"></div>
+      </div>
+    </button>
+  </aside>
+
+  <!-- ── Output ── -->
+  <main class="output-area" id="outputArea">
+    <div class="output-empty" id="emptyState">
+      <span class="empty-icon">🎭</span>
+      <div class="empty-title">الستارة لم ترفع بعد</div>
+      <p class="empty-sub">اختر إعداداتك واضغط توليد لبدء المشهد الأول</p>
+    </div>
+  </main>
+</div>
+
+<!-- Toast -->
+<div id="toast">
+  <span id="toast-icon">✓</span>
+  <span id="toast-msg">تم النسخ!</span>
+</div>
+
+<script>
+// ══ Particles ══
+const canvas = document.getElementById('particles-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [];
+
+function resizeCanvas() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', () => { resizeCanvas(); initParticles(); });
+
+function initParticles() {
+  particles = [];
+  const count = Math.floor(W * H / 18000);
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.5 + 0.3,
+      vx: (Math.random() - 0.5) * 0.2,
+      vy: -Math.random() * 0.3 - 0.1,
+      alpha: Math.random() * 0.4 + 0.1,
+      decay: Math.random() * 0.001 + 0.0005
+    });
+  }
+}
+initParticles();
+
+function animParticles() {
+  ctx.clearRect(0, 0, W, H);
+  particles.forEach((p, i) => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.alpha -= p.decay;
+    if (p.alpha <= 0 || p.y < -10) {
+      particles[i] = {
+        x: Math.random() * W,
+        y: H + 10,
+        r: Math.random() * 1.5 + 0.3,
+        vx: (Math.random() - 0.5) * 0.2,
+        vy: -Math.random() * 0.3 - 0.1,
+        alpha: Math.random() * 0.4 + 0.1,
+        decay: Math.random() * 0.001 + 0.0005
+      };
+      return;
+    }
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(201,168,76,${p.alpha})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(animParticles);
+}
+animParticles();
+
+// ══ Spotlight ══
+const spotlight = document.getElementById('spotlight');
+document.addEventListener('mousemove', e => {
+  spotlight.style.left = e.clientX + 'px';
+  spotlight.style.top  = e.clientY + 'px';
+});
+
+// ══ Counter animation ══
+function animateCount(el, target, duration = 1200) {
+  const start = parseInt(el.textContent) || 0;
+  const range = target - start;
+  const startTime = performance.now();
+  function step(now) {
+    const t = Math.min((now - startTime) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    el.textContent = Math.round(start + range * ease);
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// ══ Chip toggle ══
+document.querySelectorAll('.chips').forEach(group => {
+  group.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      group.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      // Ripple effect
+      const ripple = document.createElement('span');
+      ripple.style.cssText = `position:absolute;inset:0;background:rgba(201,168,76,0.3);border-radius:inherit;animation:rippleAnim .4s ease forwards;pointer-events:none;`;
+      chip.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 400);
+    });
+  });
+});
+
+// ══ Slider ══
+const slider = document.getElementById('charCount');
+const sliderVal = document.getElementById('charVal');
+slider.addEventListener('input', () => {
+  sliderVal.textContent = slider.value;
+  sliderVal.classList.remove('pop');
+  void sliderVal.offsetWidth;
+  sliderVal.classList.add('pop');
+  // Update slider fill
+  const pct = (slider.value - 1) / (5 - 1) * 100;
+  slider.style.background = `linear-gradient(90deg, var(--accent) ${pct}%, var(--border) ${pct}%)`;
+});
+// Init fill
+slider.style.background = `linear-gradient(90deg, var(--accent) 25%, var(--border) 25%)`;
+
+// ══ State ══
+let cardCount = 0;
+let genTotal = 0;
+
+// ══ Generate ══
+async function generateScenario() {
+  const btn = document.getElementById('generateBtn');
+  const genre = document.getElementById('genre');
+  const length = document.querySelector('#lengthChips .chip.active')?.dataset.val || 'short';
+  const level  = document.querySelector('#levelChips .chip.active')?.dataset.val || 'beginner';
+  const chars  = slider.value;
+  const setting = document.getElementById('setting').value.trim();
+  const instructions = document.getElementById('instructions').value.trim();
+
+  const genreLabel  = genre.options[genre.selectedIndex].text.replace(/^.+ /, '');
+  const lengthMap   = { short: 'قصير (3-5 دق)', medium: 'متوسط (8-12 دق)', long: 'طويل (15-20 دق)' };
+  const levelMap    = { beginner: 'مبتدئ', intermediate: 'متوسط', advanced: 'متقدم' };
+  const lengthWords = { short: '400-600', medium: '800-1200', long: '1400-2000' };
+
+  btn.classList.add('loading'); btn.disabled = true;
+
+  const empty = document.getElementById('emptyState');
+  if (empty) empty.remove();
+
+  cardCount++;
+  const cardId = `card-${cardCount}`;
+  const card = document.createElement('div');
+  card.className = 'scenario-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="card-progress"><div class="card-progress-bar" id="prog-${cardId}"></div></div>
+    <div class="card-header">
+      <div class="card-meta">
+        <span class="badge badge-genre">${genreLabel}</span>
+        <span class="badge badge-len">${lengthMap[length]}</span>
+        <span class="badge badge-level">${levelMap[level]}</span>
+      </div>
+      <div class="card-actions">
+        <button class="btn-icon" title="نسخ" onclick="copyCard('${cardId}')">⎘</button>
+        <button class="btn-icon" title="حذف" onclick="removeCard('${cardId}')">✕</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div id="stream-${cardId}" style="font-size:0.88rem;line-height:1.85;color:var(--text);"></div>
+    </div>
+  `;
+
+  const outputArea = document.getElementById('outputArea');
+  outputArea.insertBefore(card, outputArea.firstChild);
+  card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  const streamEl = document.getElementById(`stream-${cardId}`);
+  const progBar  = document.getElementById(`prog-${cardId}`);
+  streamEl.innerHTML = '<span class="cursor"></span>';
+
+  // Animate progress bar
+  let progVal = 0;
+  const progInterval = setInterval(() => {
+    progVal = Math.min(progVal + Math.random() * 3, 85);
+    progBar.style.width = progVal + '%';
+  }, 200);
+
+  const prompt = `You are a professional playwright and acting coach specializing in writing training scenes.
+
+Write an acting training scene based on the following specifications:
+- Genre: ${genreLabel}
+- Scene Length: ${lengthMap[length]} (around ${lengthWords[length]} words)
+- Acting Difficulty Level: ${levelMap[level]}
+- Number of Characters: ${chars}
+${setting ? `- Setting & Time: ${setting}` : ''}
+${instructions ? `- Special Instructions / Input: ${instructions}` : ''}
+
+CRITICAL LANGUAGE REQUIREMENT:
+1. Detect the language and dialect of the "Special Instructions" AND "Setting".
+2. If they are written in English, the ENTIRE OUTPUT MUST BE IN ENGLISH ONLY. Do NOT use any Arabic headers. Emphatically ensure the entire response is purely English.
+3. If they are in Arabic (or if no special instructions are provided), analyze the dialect (e.g., Iraqi, Khaleeji, Egyptian, Levantine, Fusha). Generate the characters' dialogue exactly in that detected dialect. The structural headers and stage directions MUST remain in formal Arabic (Fusha).
+
+Use this format (Translate headers to your selected output language):
+
+# [Scene Title]
+
+**Core Concept:** [A single sentence summarizing the scene's core conflict]
+
+---
+## Characters
+
+**[Character Name 1]** — [Character description and emotional state]
+
+---
+## Setting
+
+[Description of the location and atmosphere]
+
+---
+## The Scene
+
+[Character Name]: (Stage direction) Dialogue
+
+---
+## Director's Notes
+
+- [Note 1]
+- [Note 2]
+- [Note 3]`;
+
+  try {
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let fullText = '', buffer = '', charCount2 = 0;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const raw = line.slice(6).trim();
+        if (raw === '[DONE]') continue;
+        try {
+          const obj = JSON.parse(raw);
+          const delta = obj?.delta?.text || '';
+          if (delta) {
+            fullText += delta;
+            charCount2 += delta.length;
+            streamEl.innerHTML = renderMarkdown(fullText) + '<span class="cursor"></span>';
+            // Update progress based on char count estimate
+            const estProg = Math.min(85 + charCount2 / 40, 96);
+            progBar.style.width = estProg + '%';
+          }
+        } catch {}
+      }
+    }
+
+    clearInterval(progInterval);
+    progBar.style.width = '100%';
+    progBar.classList.add('done');
+    streamEl.innerHTML = renderMarkdown(fullText);
+
+    // Update counters
+    genTotal++;
+    document.getElementById('genCount').textContent = genTotal + ' سيناريو';
+    animateCount(document.getElementById('stat-count'), genTotal);
+
+    showToast('✦', 'تم توليد السيناريو بنجاح!');
+
+  } catch (err) {
+    clearInterval(progInterval);
+    progBar.style.background = 'var(--red)';
+    progBar.style.width = '100%';
+    streamEl.innerHTML = `<div style="color:var(--red);padding:8px 0">⚠ حدث خطأ: ${err.message}</div>`;
+  }
+
+  btn.classList.remove('loading'); btn.disabled = false;
+}
+
+// ══ Markdown renderer ══
+function renderMarkdown(text) {
+  // Support Qwen output syntax cleaning if necessary
+  text = text.replace(/<think>[\s\S]*?(?:<\/think>|$)/gi, "").trim();
+  text = text.replace(/<\/?think.*?>/gi, "");
+  
+  text = text.replace(/^(?:\*\*|\[)([^\]*:\n]+):?(?:\*\*|\]):?\s*\((.+?)\)\s*\n\s*"?(.+?)"?$/gm, "**$1:** ($2) $3");
+  text = text.replace(/^(?:\*\*|\[)([^\]*:\n]+):?(?:\*\*|\]):?\s*\n\s*"?(.+?)"?$/gm, "**$1:** $2");
+
+  return text
+    .replace(/^#+ (.+)$/gm, '<h2 class="scenario-title">$1</h2>')
+    .replace(/^##+ (.+)$/gm, '<div class="scene-section-title">$1</div>')
+    .replace(/^---$/gm, '<div style="height:1px;background:var(--border);margin:16px 0;"></div>')
+    .replace(/\*\*(الفكرة.*?|المحور.*?|القصة.*?|Core Concept.*?):?\*\*:?\s*(.+)/gi, '<p style="margin-bottom:8px"><strong style="color:var(--accent)">$1:</strong> <span style="color:var(--text-muted)">$2</span></p>')
+    .replace(/\*\*\[?([^\]\n]+?)\]?\*\*\s*[-—]\s*(.+)/g, '<div class="char-card"><div class="char-name">$1</div><div class="char-desc">$2</div></div>')
+    .replace(/^(?:\*\*|\[)([^\]*:\n]+):?(?:\*\*|\]):?\s*\((.+?)\)\s*(.+)$/gm, '<div class="dialogue-block"><div class="dialogue-speaker">$1</div><div class="direction">$2</div><div class="dialogue-line">$3</div></div>')
+    .replace(/^(?:\*\*|\[)([^\]*:\n]+):?(?:\*\*|\]):?\s*(.+)$/gm, (match, speaker, line) => {
+      const lowerSpeaker = speaker.toLowerCase();
+      if (lowerSpeaker.includes("الفكرة") || lowerSpeaker.includes("ملاحظات") || lowerSpeaker.includes("الشخصيات") || lowerSpeaker.includes("المشهد") || lowerSpeaker.includes("concept") || lowerSpeaker.includes("note") || lowerSpeaker.includes("character") || lowerSpeaker.includes("scene")) return match;
+      return `<div class="dialogue-block"><div class="dialogue-speaker">${speaker}</div><div class="dialogue-line">${line}</div></div>`;
+    })
+    .replace(/^- (.+)$/gm, '<div class="note-item">$1</div>')
+    .replace(/\n{2,}/g, '<br/>')
+    .replace(/\n/g, '<br/>');
+}
+
+// ══ Copy ══
+function copyCard(cardId) {
+  const el = document.getElementById(cardId);
+  const text = el.querySelector('.card-body').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('✓', 'تم نسخ السيناريو!');
+  });
+}
+
+// ══ Remove card with animation ══
+function removeCard(cardId) {
+  const card = document.getElementById(cardId);
+  card.style.transition = 'all .4s cubic-bezier(.55,0,1,.45)';
+  card.style.transform = 'scale(.95) translateY(10px)';
+  card.style.opacity = '0';
+  setTimeout(() => {
+    card.remove();
+    if (!document.querySelector('.scenario-card')) {
+      const outputArea = document.getElementById('outputArea');
+      outputArea.innerHTML = `
+        <div class="output-empty" id="emptyState">
+          <span class="empty-icon">🎭</span>
+          <div class="empty-title">الستارة لم ترفع بعد</div>
+          <p class="empty-sub">اختر إعداداتك واضغط توليد لبدء المشهد الأول</p>
+        </div>`;
+    }
+  }, 400);
+}
+
+// ══ Toast ══
+let toastTimer;
+function showToast(icon, msg) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toast-icon').textContent = icon;
+  document.getElementById('toast-msg').textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
+}
+
+// ══ Ripple keyframe inject ══
+const style = document.createElement('style');
+style.textContent = `@keyframes rippleAnim { from{opacity:.6;transform:scale(0)} to{opacity:0;transform:scale(1)} }`;
+document.head.appendChild(style);
+</script>
+</body>
+</html>

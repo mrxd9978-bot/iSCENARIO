@@ -26,7 +26,13 @@ async function startServer() {
 
       const responseStream = await groq.chat.completions.create({
         model: "qwen/qwen3-32b",
-        messages: [{ role: "user", content: prompt }],
+        messages: [
+          {
+            role: "system",
+            content: "You are a versatile language model. Always detect the exact language of the user's special instructions or setting. If it is English, your ENTIRE output must be in English. If it is Arabic, output structural elements and stage directions in Standard Arabic (Fusha), but strictly write the characters' dialogue in the specific Arabic dialect (e.g., Iraqi, Egyptian, Syrian, Khaleeji) that the user used.",
+          },
+          { role: "user", content: prompt }
+        ],
         stream: true,
       });
 

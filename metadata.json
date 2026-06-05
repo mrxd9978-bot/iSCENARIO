@@ -1,5 +1,5 @@
 {
-  "name": "SceneForge",
+  "name": "iSCENARIO",
   "description": "AI scenario generator for actors, directors, and acting coaches. Creates professional dramatic scenes and practice scenarios with direct coaching notes.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
