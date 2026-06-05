@@ -44,38 +44,44 @@ Create a professional training scene with these specs:
 ${req.setting ? `- Setting & Era: ${req.setting}` : ""}
 ${req.instructions ? `- Special Instructions: ${req.instructions}` : ""}
 
-CRITICAL LANGUAGE REQUIREMENT:
-Analyze the language and dialect of the input.
-- If the input (such as instructions/setting) is in English, generate the ENTIRE OUTPUT in English.
-- If the input is in Arabic, analyze the dialect (e.g., Iraqi, Khaleeji, Egyptian, Levantine, Fusha). Generate the characters' dialogue EXACTLY in that same Arabic dialect. The structural headings and stage directions should remain in formal Arabic (Fusha) if the input is Arabic.
+CRITICAL STRICT LANGUAGE RULES:
+1. DETECT the primary language of the "Special Instructions" or "Setting" parameters provided above.
+2. If the user input is primarily in ENGLISH: 
+   - You MUST generate the ENTIRE scenario (including all headings, character descriptions, stage directions, and dialogue) ONLY in ENGLISH. NOT A SINGLE ARABIC WORD. 
+   - Use headings like "Core Concept", "Characters", "Setting", "The Scene", "Director's Notes".
+3. If the user input is primarily in ARABIC: 
+   - Analyze the specific Arabic dialect (e.g., Iraqi, Khaleeji, Egyptian, Levantine, Fusha). 
+   - Generate the CHARACTERS' DIALOGUE exactly in that detected dialect. 
+   - The structural headings and stage directions MUST be in formal Arabic (Fusha). 
+   - Use headings like "الفكرة المحورية:", "## الشخصيات", "## الموقع والمناخ", "## المشهد", "## ملاحظات المخرج".
 
-Ensure you use this structure (translated to the target language appropriately):
+FORMATTING REQUIREMENTS:
+Use strict Markdown format for the structure.
 
 # [Scene Title]
 
-**الفكرة المحورية:** [Core Concept]
+**[Core Concept]**: [One sentence]
 
 ---
-## الشخصيات (Characters)
+## [Characters]
 
-**[Character Name]** — [Description and state]
+**[Name]** - [Description]
 
 ---
-## الموقع والمناخ (Setting)
+## [Setting]
 
 [Description]
 
 ---
-## المشهد (The Scene)
+## [The Scene]
 
-[Character Name]: (Stage direction) Dialogue
+[Name]: (Direction) Dialogue
 
 ---
-## ملاحظات المخرج (Director's Notes)
+## [Director's Notes]
 
 - Note 1
-- Note 2
-- Note 3`;
+- Note 2`;
 
       const res = await fetch("/api/generate", {
         method: "POST",

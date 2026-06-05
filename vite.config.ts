@@ -9,39 +9,7 @@ export default defineConfig(() => {
   return {
     plugins: [
       react(), 
-      tailwindcss(),
-      VitePWA({
-        registerType: 'autoUpdate',
-        injectRegister: 'auto',
-        includeAssets: ['logo.svg', 'apple-touch-icon.png'],
-        manifest: {
-          name: 'iSCENARIO',
-          short_name: 'iSCENARIO',
-          description: 'مولّد السيناريوهات الذكي',
-          theme_color: '#0a0b0e',
-          background_color: '#0a0b0e',
-          display: 'standalone',
-          start_url: '/',
-          icons: [
-            {
-              src: 'pwa-192x192.png',
-              sizes: '192x192',
-              type: 'image/png'
-            },
-            {
-              src: 'pwa-512x512.png',
-              sizes: '512x512',
-              type: 'image/png'
-            },
-            {
-              src: 'pwa-512x512.png',
-              sizes: '512x512',
-              type: 'image/png',
-              purpose: 'any maskable'
-            }
-          ]
-        }
-      })
+      tailwindcss()
     ],
     resolve: {
       alias: {
